@@ -15,6 +15,7 @@ const stringSession = new StringSession(process.env.SESSION_STRING);
 const botUsername = process.env.BOT_USERNAME;
 
 let client;
+let clienteListo = false;
 const pendientes = new Map();
 
 async function iniciarCliente() {
@@ -22,6 +23,7 @@ async function iniciarCliente() {
     connectionRetries: 5,
   });
   await client.connect();
+  clienteListo = true;
   console.log("Cliente de Telegram conectado.");
 
   client.addEventHandler(async (event) => {
@@ -48,6 +50,10 @@ async function iniciarCliente() {
     }
   }, new NewMessage({}));
 }
+
+app.get("/estado", (req, res) => {
+  res.json({ listo: clienteListo });
+});
 
 app.post("/consulta-dni", async (req, res) => {
   const { dni } = req.body;
@@ -79,6 +85,5 @@ app.post("/consulta-dni", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-iniciarCliente().then(() => {
-  app.listen(PORT, () => console.log("Servidor corriendo en puerto " + PORT));
-});
+app.listen(PORT, () => console.log("Servidor corriendo en puerto " + PORT));
+iniciarCliente();
