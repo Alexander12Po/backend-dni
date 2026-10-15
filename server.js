@@ -84,6 +84,39 @@ app.post("/consulta-dni", async (req, res) => {
   }
 });
 
+app.post("/consulta-nombre", async (req, res) => {
+  const { nombres, paterno, materno } = req.body;
+
+  const nombresFormato = nombres.trim().replace(/\s+/g, ",");
+  let comando = "/nm " + nombresFormato + "|" + paterno.trim();
+  if (materno && materno.trim()) {
+    comando += "|" + materno.trim();
+  }
+
+  try {
+    const resultadoPromise = new Promise((resolve) => {
+      pendientes.set(comando, resolve);
+      setTimeout(() => {
+        if (pendientes.has(comando)) {
+          pendientes.delete(comando);
+          resolve(null);
+        }
+      }, 15000);
+    });
+
+    await client.sendMessage(botUsername, { message: comando });
+    const resultado = await resultadoPromise;
+
+      return res.status(504).json({ error: "El bot no respondio a tiempo" });
+    }
+
+    res.json({ success: true, ...resultado });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor corriendo en puerto " + PORT));
 iniciarCliente();
