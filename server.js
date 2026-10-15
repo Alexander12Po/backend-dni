@@ -86,6 +86,7 @@ app.post("/consulta-dni", async (req, res) => {
 
 app.post("/consulta-nombre", async (req, res) => {
   const { nombres, paterno, materno } = req.body;
+  if (!nombres || !paterno) return res.status(400).json({ error: "Faltan datos" });
 
   const nombresFormato = nombres.trim().replace(/\s+/g, ",");
   let comando = "/nm " + nombresFormato + "|" + paterno.trim();
@@ -107,6 +108,7 @@ app.post("/consulta-nombre", async (req, res) => {
     await client.sendMessage(botUsername, { message: comando });
     const resultado = await resultadoPromise;
 
+    if (!resultado) {
       return res.status(504).json({ error: "El bot no respondio a tiempo" });
     }
 
